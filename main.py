@@ -51,7 +51,7 @@ def send_email(month, day, link):
     s.login(user = EMAIL, password = PASSWORD)
     s.sendmail(sender, receivers, msg.as_string())
     s.quit()
-    print("SUCCES!")
+    print("SUCCESS!")
 
 def main():
     for month in range(1, 3):
