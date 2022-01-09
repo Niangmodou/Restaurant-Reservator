@@ -7,7 +7,7 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 import os
 from dotenv import load_dotenv
-import schedule
+from schedule import every, repeat, run_pending
 
 load_dotenv()
 
@@ -75,7 +75,7 @@ def send_email(month, day, link):
     s.quit()
     print("SUCCESS!")
 
-
+@repeat(every(5).minutes)
 def scrape():
     try:
         month = 2
@@ -90,10 +90,8 @@ def scrape():
 
 
 def main():
-    schedule.every(5).minutes.do(scrape)
-
     while True:
-        schedule.run_pending()
+        run_pending()
         time.sleep(1)
 
 
