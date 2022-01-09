@@ -20,8 +20,11 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+# DRIVER = webdriver.Chrome(
+#     executable_path=os.environ.get("CHROMEDRIVER_PATH"), options=chrome_options
+# )
 DRIVER = webdriver.Chrome(
-    executable_path=os.environ.get("CHROMEDRIVER_PATH"), options=chrome_options
+    executable_path='./chromedriver', options=chrome_options
 )
 
 
@@ -58,7 +61,7 @@ def send_email(month, day, link):
 
     # Creating the email
     sender = "niangmodou100@gmail.com"
-    receivers = ["niangmodou100@gmail.com", "aam1040@nyu.edu"]
+    receivers = ["niangmodou100@gmail.com"]
 
     msg = MIMEText(message, "html")
     msg["Subject"] = "CARBONE HAS AN OPENING MFFFFF"
@@ -74,20 +77,20 @@ def send_email(month, day, link):
 
 
 def scrape():
-    for month in range(1, 3):
-        for day in range(1, 31):
-            try:
-                link = find_reservation(month, day)
+    try:
+        month = 2
+        day = 14
+        link = find_reservation(month, day)
 
-                send_email(month, day, link)
+        send_email(month, day, link)
 
-            except Exception as _:
-                print("NOT FOUND:")
+    except Exception as _:
+        print("NOT FOUND:")
 
 
 
 def main():
-    schedule.every(30).minutes.do(scrape)
+    schedule.every(5).minutes.do(scrape)
 
     while True:
         schedule.run_pending()
