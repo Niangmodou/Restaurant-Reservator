@@ -8,6 +8,9 @@ from email.mime.text import MIMEText
 import os
 from dotenv import load_dotenv
 from schedule import every, repeat, run_pending
+import logging
+
+logging.basicConfig(level = logging.INFO)
 
 load_dotenv()
 
@@ -20,19 +23,23 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
+service = Service(os.environ.get("CHROMEDRIVER_PATH"))
 DRIVER = webdriver.Chrome(
-    executable_path=os.environ.get("CHROMEDRIVER_PATH"), options=chrome_options
+    service=service, options=chrome_options
 )
 
 
-def find_reservation(month, day) -> str:
+def find_reservation(month: int, day: int, restaurant: str) -> str:
+    """
+    Finds if there are any reservations open at a restaurant on a particular day
+    """
     month = "0" + str(month)
     if day < 10:
         day = "0" + str(day)
-    link = "https://resy.com/cities/ny/carbone?date=2022-{}-{}&seats=2".format(
-        month, day
+    link = "https://resy.com/cities/ny/{}?date=2022-{}-{}&seats=2".format(
+        restaurant, month, day
     )
-    print("MAKING CALL TO:", link)
+    logging.info("MAKING CALL TO: " + link)
     DRIVER.get(link)
 
     time.sleep(2)
@@ -45,10 +52,13 @@ def find_reservation(month, day) -> str:
     return link
 
 
-def send_email(month, day, link):
+def send_email(month: int, day: int, link: str, restaurant: str) -> None:
+    """
+    Sends an email to myself if there is an opening at selected restaurant on selected day
+    """
     month_map = {1: "January", 2: "February"}
     message = (
-        "CARBONE HAS AN OPENING ON "
+        "{} HAS AN OPENING ON ".format(restaurant)
         + month_map[month]
         + " "
         + str(day)
@@ -61,7 +71,7 @@ def send_email(month, day, link):
     receivers = ["niangmodou100@gmail.com"]
 
     msg = MIMEText(message, "html")
-    msg["Subject"] = "CARBONE HAS AN OPENING MFFFFF"
+    msg["Subject"] = "{} HAS AN OPENING MFFFFF".format(restaurant)
     msg["From"] = sender
     msg["To"] = ",".join(receivers)
 
@@ -70,20 +80,29 @@ def send_email(month, day, link):
     s.login(user=EMAIL, password=PASSWORD)
     s.sendmail(sender, receivers, msg.as_string())
     s.quit()
-    print("SUCCESS!")
+
+    logging.info("SUCCESS!")
 
 @repeat(every(5).minutes)
 def scrape():
+    """
+    Scrapes L'Artusi & Carbone every 5 minutes to check if there are any openings
+    """
+    month, day = 2, 14
+
+    # Carbone 
     try:
-        month = 2
-        day = 14
-        link = find_reservation(month, day)
-
-        send_email(month, day, link)
-
+        link = find_reservation(month, day, "carbone")
+        send_email(month, day, link, "CARBONE")
     except Exception as _:
-        print("NOT FOUND:")
+        logging.info("CARBONE NOT FOUND!")
 
+    # L'Artusi
+    try:
+        link = find_reservation(month, day, "lartusi-ny")
+        send_email(month, day, link, "L'ARTUSI")
+    except Exception as _:
+        logging.info("L'ARTUSI NOT FOUND!")
 
 
 def main():
