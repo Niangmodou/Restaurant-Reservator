@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from schedule import every, repeat, run_pending
 import logging
 
-logging.basicConfig(level = logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
 load_dotenv()
 
@@ -24,9 +24,7 @@ chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.binary_location = os.environ.get("GOOGLE_CHROME_BIN")
 service = Service(os.environ.get("CHROMEDRIVER_PATH"))
-DRIVER = webdriver.Chrome(
-    service=service, options=chrome_options
-)
+DRIVER = webdriver.Chrome(service=service, options=chrome_options)
 
 
 def find_reservation(month: int, day: int, restaurant: str) -> str:
@@ -83,6 +81,7 @@ def send_email(month: int, day: int, link: str, restaurant: str) -> None:
 
     logging.info("SUCCESS!")
 
+
 @repeat(every(5).minutes)
 def scrape():
     """
@@ -90,7 +89,7 @@ def scrape():
     """
     month, day = 2, 14
 
-    # Carbone 
+    # Carbone
     try:
         link = find_reservation(month, day, "carbone")
         send_email(month, day, link, "CARBONE")
